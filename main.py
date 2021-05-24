@@ -13,7 +13,6 @@ import parameters_input as inp
 import plot_generator as plot
 import datareader
 from tictoc import tic, toc
-from aggregate_load_profiler import aggregate_load_profiler as agr_hlp
 from shared_energy_evaluator import shared_energy_evaluator
 
 
@@ -59,16 +58,15 @@ basepath = Path(__file__).parent
 ### Parameters and simulation setup
 
 
-## Parameters 
-
-# Parameters are enter from keyboard by the user. This operation is performed using
-# the method parameters_input from parameters_input.py (inp) that returns a dictionary.
-
-params = inp.parameters_input()
-
+##Household simulation Parameters - placeholders
+#params = inp.parameters_input()
+dirname = 'Parameters'
+try: Path.mkdir(basepath / dirname)
+except Exception: pass 
+params = datareader.read_param('parameters', ';', dirname)
 # The values of the parameters that are needed here are taken from params
 
-# Number of households considered (-)
+# Number of households c<<<<<<<<<<onsidered (-)
 n_hh = params['n_hh'] 
 
 # Geographical location: 'north' | 'centre' | 'south'
@@ -77,13 +75,14 @@ location = params['location']
 # Energetic class of the appiances: 'A+++' | 'A++' | 'A+' | 'A' | 'B' | 'C' | 'D'
 en_class = params['en_class']
 
-# Contractual power for each household (kW)
-power_max = params['power_max']
+# Contractual power (MAX) (kW)
+#power_max = params['power_max']
+power_max = 15
 
-
-# Time-step used to aggregated the results (min): 1 | 5 | 10 | 15 | 10 | 30 | 45 | 60
-dt_aggr = params['dt_aggr']
-
+# Time-step used to aggregated the results (min): 1 | 5 | 10 | 15 | 10 | 30 | 45 | 60 
+# FIXED PARAM : 60 minutes
+dt_aggr = 60 #params['dt_aggr']
+#%%
 
 ## Type of simulation
 # The type of simulation is chosen (fixed size or paramtric analysis) both for the pv
@@ -216,7 +215,8 @@ tic()
 time = 24
 
 # Timestep for the simulation (h) (the keyboard input dt_aggr is given in minutes)
-dt = dt_aggr/60
+#Fixed timestep - 1h
+dt = 1 #dt_aggr/60
 
 # Vector of time, from 00:00 to 23:59, i.e. 24 h
 time_sim = np.arange(0, time, dt)
@@ -234,8 +234,8 @@ time_dict = {
 
 ### Input data
 
-# Maximum power from the grid (total for the aggregate of households) (kW)
-grid_power_max = power_max*n_hh
+# Maximum power from the grid (total) (kW)
+grid_power_max = power_max
 
 
 ## Battery specification
@@ -277,146 +277,15 @@ dirname = 'Output'
 subdirname = 'Files'
 subsubdirname = '{}_{}_{}'.format(location, en_class, n_hh)
 
-# If the files exist, the user is asked if it is needed to re-evaluate the load profiles or the available ones can be used
+# If the files exist, program reads it
 try:
-
     data_wd = datareader.read_general('consumption_profiles_month_wd.csv', ';', '/'.join((dirname, subdirname, subsubdirname)))
     data_we = datareader.read_general('consumption_profiles_month_we.csv', ';', '/'.join((dirname, subdirname, subsubdirname)))
-
     consumption_month_wd = data_wd[:, 1:]
     consumption_month_we = data_we[:, 1:]
-
     consumption_month_day = np.stack((consumption_month_wd, consumption_month_we), axis = 2)
-
-    # If the available load profiles have a different time step from the one selceted for the simulation, they are just disregarded
-    # (alternatively one could think to interpolate/aggregate the profile with the right time-step)
-    if np.size(consumption_month_day, axis = 0) != time_length:
-        load_profiler_flag = 1
-
-    else:
-
-        message = '\nSome load profiles have already been evaluated for the current configuration, do you want to use them?\
-            \nPress \'enter\' to skip and re-evaluate the load profiles \
-            \nEnter \'ok\' to use the available ones: '
-        load_profiler_flag = input(message).strip('\'",._- ').lower()
-
-        if load_profiler_flag == '': load_profiler_flag = 1
-        else: load_profiler_flag = 0; print('\nThe available load profiles will be used.')
-
 except:
-    load_profiler_flag = 1
-
-
-# The method aggregate_load_profiler is called only if the user decides to re-evaluate the load profiles 
-# or there are no files where they are already stored for this configuration
-if load_profiler_flag == 1:
-
-    message = '\nEvaluation of the load profiles for the aggregate of households.'
-    print(message)
-
-    # Asking the user if detailed graphs and information about the load profile are to be stored as files and
-    # graphs (it will take some seconds more)
-    message = '\nDo you want to store files with detailed information about the load profiles generated and the related energy consumption?\
-            \nPress \'enter\' to skip or \
-            \nEnter \'ok\' to store: '
-    file_store_flag = input(message).strip('\'",._- ').lower()
-
-    if file_store_flag == '': file_store_flag = 0
-    else: file_store_flag = 1
-
-    message = '\nDo you want detailed information about the load profiles generated and the related energy consumption to be plotted and stored as figures?\
-            \nPress \'enter\' to skip or \
-            \nEnter \'ok\' to plot: '
-    fig_store_flag = input(message).strip('\'",._- ').lower()
-
-    if fig_store_flag == '': fig_store_flag = 0
-    else: fig_store_flag = 1
-
-    # The consumption from the aggregate of household is evaluated using the method aggregate_load_profiler
-    # from the module aggregate_load_profiler.py that returns a 3d-array where the load profiles for typical
-    # days (with a time-step of dt_aggr) are showed. The typical days are divided by season (axis = 0)  and
-    # day type (weekday or weekend day, axis =2). The power is given in W, therefore it has to be converted into kW
-    # Nota bene: only the consumption from households is evaluated (i.e. no consumption from shared commodities)
-
-    tic()  
-    consumption_seasons = agr_hlp(params, file_store_flag, fig_store_flag)/1000
-    print('\nLoad profiles evaluated in {0:.3f} s.'.format(toc()))
-
-    # The method aggregate_load_profiler computes the load profiles for eight typical days (two for each season)
-    # Here twelve months are considered, therefore the "seasonal" load profiles are interpolated into the months.
-    # To do this the represententative load profile of each season is assigned to the first month of the season
-    # (e.g. winter -> january). The interpolation is linear, therefore interp1d could have been used, but it does
-    # not allow for periodic interpolation. Therefore a for-loop in time is used, interpolating the power
-    # during each timestep
-
-    # Initializing a a 3d-array where where to store the profiles interpolated for each month
-    consumption_month_day = np.zeros((time_length, n_months, n_days))
-
-    for day in days:
-        dd = days[day][0]
-
-        for timestep in range(time_length):
-            consumption_month_day[timestep, :, dd] = \
-            np.interp(months_slice, seasons_slice, consumption_seasons[:, timestep, dd], period = n_months)
-
-    # Creating an /Output folder, if not already existing
-    dirname = 'Output'
-
-    try: Path.mkdir(basepath / dirname)
-    except Exception: pass
-
-    # Creating an /Output/Files folder, if not already existing
-    subdirname = 'Files'
-
-    try: Path.mkdir(basepath / dirname / subdirname)
-    except Exception: pass 
-
-    # Creating a subfolder, if not already existing
-    subsubdirname = '{}_{}_{}'.format(location, en_class, n_hh)
-
-    try: Path.mkdir(basepath / dirname / subdirname / subsubdirname)
-    except Exception: pass
-
-    # Saving the load profiles so that they can be used again
-    fpath = basepath / dirname / subdirname / subsubdirname
- 
-    for day in days:
-        dd = days[day][0]
-        day_nickname = days[day][1]
-
-        filename = 'consumption_profiles_month_{}.csv'.format(day_nickname)
-        with open(fpath / filename, mode = 'w', newline = '') as csv_file:
-
-            header = ['Time (h)'] + ['{} (kWh/h)'.format(month.capitalize()) for month in months]
-            csv_writer = csv.writer(csv_file, delimiter = ';', quotechar = "'", quoting = csv.QUOTE_NONNUMERIC)
-            csv_writer.writerow(header)
-            
-            for timestep in range(time_length):
-                row = [time_sim[timestep]] + [consumption_month_day[timestep, months[month]['id'][0], dd] for month in months]
-                csv_writer.writerow(row)
-               
-    # # Uncomment to check on energy consumption before and after interpolation between seasons and months
-    # yearly_consumption = 0
-    # for season in seasons:
-    #     ss = seasons[season][0]
-    #     for day in days:
-    #         dd = days[day][0]
-    #         n_days_day_type = days_distr[season][day]
-    #         yearly_consumption += np.sum(consumption_seasons[ss, :, dd])*dt*n_days_day_type
-
-    # print('Energy consumption before interpolation: {} kWh/year'.format(yearly_consumption))
-
-    # yearly_consumption = 0
-    # for month in months:
-    #     mm = months[month]['id'][0]
-    #     for day in days:
-    #         dd = days[day][0]
-    #         n_days_day_type = months[month]['days_distr'][day]
-    #         yearly_consumption += np.sum(consumption_month_day[:, mm, dd])*dt*n_days_day_type
-
-    # print('Energy consumption after interpolation: {} kWh/year'.format(yearly_consumption))
-
-
+    raise RuntimeError("Must provide load profiles in proper format.") # load_profiler_flag = 1
 
 ### Energy shared from the aggregate of household during one year, for all possible configurations
 
@@ -921,65 +790,7 @@ plt.show()
 
 
     
-    
-
-
-
-# if fixed_analysis_flag != 1:
-
-#     # The method parametric_analysis from plot_generator.py takes a main_size and a lead_size. A number of subplots will be
-#     # created depending on the sizes present in the lead_size_range, while the sizes in the main_size_range will be used as x axis
-
-#     # The data to be plotted are the iss, isc and shared energy for each configuration
-#     plot_specs = {
-#         0: {'type': 'plot', 'yaxis': 'right', 'label': 'ISS'},
-#         1: {'type': 'plot', 'yaxis': 'right', 'label': 'ISC'},
-#         2: {'type': 'bar', 'yaxis': 'left', 'label': 'Shared energy'},
-#         }
-
-#     fig_specs = {
-#         'suptitle': 'Parametric analysis',
-#         'xaxis_label': 'PV size (kW)',
-#         'yaxis_right_label': 'Performance index (%)',
-#         'yaxis_left_label': 'Energy (kWh/year)',
-#         'lead_size_name': 'Battery',
-#         'lead_size_uom': 'kWh',
-#         'yaxis_right_ylim': [0, 1.1*np.max(np.maximum(iss_configurations, isc_configurations))],
-#         'yaxis_left_ylim': [0, 1.1*np.max(esh_configurations)],
-#         }
-
-#     data = np.stack((iss_configurations, isc_configurations, esh_configurations), axis = 2)
-
-
-#     # Since the number of subplots depend on the length of lead_size_range, the smaller of the two is chosen
-#     if n_pv_sizes > n_battery_sizes: main_size_range, lead_size_range = pv_size_range, battery_size_range
-
-#     # If the pv is to be the lead size range, some changing are to be done to plot_specs and fig_specs
-#     # and the data is to be transposed since the main size goes on the first axis
-#     else:
-#         main_size_range, lead_size_range = battery_size_range, pv_size_range
-#         main_size_range = battery_size_range
-#         lead_size_range = pv_size_range
-#         fig_specs['xaxis_label'] = 'Battery size (kWh)'
-#         fig_specs['lead_size_name'] = 'PV'
-#         fig_specs['lead_size_uom'] = 'kW'
-#         data = np.transpose(data, axes = (1, 0, 2))
-
-#     # Setting the figsize depending on the number of subplots (i.e. length of the lead_size_range)
-#     # Considering that the subplots are divided into 2 columns and that the default size is an a3,
-#     # whose proportion adapt to the case of 3 row of subplots
-#     figsize = (297/25.4, 420/25.4 / 3 * int((len(lead_size_range) + 1)/2))
-      
-#     fig = plot.parametric_analysis(main_size_range, lead_size_range, data, plot_specs, fig_specs, **{'figsize': figsize, 'orientation': 'vertical'})
-    
-#     # filename = '{}_{}_{}_{}_parametric_analysis.png'.format(location, en_class, season, n_hh)
-#     filename = 'pv_{}_{}_battery_{}_{}_parametric_analysis.png'.format(pv_size_range[0], pv_size_range[-1], battery_size_range[0], battery_size_range[-1])
-#     fpath = basepath / dirname / subdirname / subsubdirname 
-            
-#     fig.savefig(fpath / filename) 
-
-#     plt.show()
-#     plt.close(fig)
+   
 
 
 
