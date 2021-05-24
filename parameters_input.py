@@ -80,7 +80,7 @@ def parameters_input():
 
     # Creating a dictionary that contains all the parameters, their type, default values, etc.
     param_dict = {
-        'n_hh': {'type': int, 'default_val': 2, 'min_val': 1, 'max_val': 10000, 'uom': '(units)'},
+        'n_hh': {'type': int, 'default_val': 5, 'min_val': 1, 'max_val': 10000, 'uom': '(units)'},
         # 'toll': {'type': int, 'default_val': 15., 'min_val': 0., 'max_val': 100, 'uom': '(min)'},
         # 'devsta': {'type': int, 'default_val': 2, 'min_val': 1, 'max_val': 100, 'uom': '(min)'},
         # 'q_max': {'type': int, 'default_val': 85, 'min_val': 1, 'max_val': 100, 'uom': '(%)'},

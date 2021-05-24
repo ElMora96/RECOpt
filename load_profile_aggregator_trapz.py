@@ -20,7 +20,7 @@ import numpy as np
 
 ###############################################################################
 
-def aggregator(time_dict, load_profile, dt_aggr):
+def aggregator(time_dict, load_profile, dt_aggr):    
     
     '''The function aggregates a load_profile, changing the time resolution.
     
@@ -101,7 +101,7 @@ def aggregator(time_dict, load_profile, dt_aggr):
 
 ################################################################################################################
 
-# ## Uncomment the following lines to test the function
+## Uncomment the following lines to test the function
 
 # import matplotlib.pyplot as plt 
 

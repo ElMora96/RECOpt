@@ -192,6 +192,7 @@ def aggregate_load_profiler(params, file_store_flag, fig_store_flag):
                 power_lp = data_lp[:, 1] 
                 load_profile = power_lp
 
+
                 # Interpolating the load profile if it has a different time-resolution
                 if (time_lp[-1] - time_lp[0])/(np.size(time_lp) - 1) != dt: 
                     load_profile = np.interp(time_sim, time_lp, power_lp, period = time)
@@ -394,8 +395,9 @@ def aggregate_load_profiler(params, file_store_flag, fig_store_flag):
  
             # Sorting the values of the power from all the households in an increasing way, for each time-step
             sorted_lp = np.sort(aggr_households_lp, axis = 1) 
-            
+            #print(sorted_lp.shape) #debug
             # Evaluating the maximum, medium and minimum load profiles (quantile), for each time-step
+            #print(nmax) #debug
             quantile_lp_max = sorted_lp[:, nmax]
             quantile_lp_med = sorted_lp[:, nmed]
             quantile_lp_min = sorted_lp[:, nmin]

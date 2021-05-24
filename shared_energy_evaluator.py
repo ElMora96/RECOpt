@@ -194,11 +194,12 @@ def shared_energy_evaluator(time_dict, input_powers_dict, technologies_dict, aux
             # Using the method battery_optimisation from the module battery_optimisation.py to run the MILP
             # optimisation in order to determine the battery usage strategy in the typical day. Powers and 
             # energy stored in the battery at each time-step are returned.
+            try:
+                optimisation_status[month][day], shared_power, grid_feed, grid_purchase, battery_charge, battery_discharge, battery_energy = \
+                battery_optimisation(pv_production, consumption, time_dict, technologies_dict)
+            except:
+                raise RuntimeError("Hey motherfucker! Optimisation failed")
 
-            optimisation_status[month][day], \
-            shared_power, grid_feed, grid_purchase, battery_charge, battery_discharge, battery_energy = \
-            battery_optimisation(pv_production, consumption, time_dict, technologies_dict)
- 
             # # Uncomment to check that the constraints and equations defined in the problem are actually respected
             # tol = 1e-4
             # if (np.any(net_load + grid_feed + battery_charge - pv_available - grid_purchase - battery_discharge > tol)): print('ops, node')

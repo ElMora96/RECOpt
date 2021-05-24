@@ -123,7 +123,7 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
     #           and all energy taken from the grid, consumption + battery)
     opt_objectives = ['MAXSHE', 'MINGRI']
 
-    opt_objective_num = 1
+    opt_objective_num = 1 #porcata
     opt_objective = opt_objectives[opt_objective_num]
 
 
@@ -272,7 +272,7 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
     # If the xception raises, nans are returned
 
     try:
-        opt_problem.solve(PULP_CBC_CMD(msg = 0)) #PULP_CBC_CMD(msg=True)
+        opt_problem.solve(GLPK_CMD(msg = 0)) #PULP_CBC_CMD(msg=True)
         
     except:
         optimisation_status = 'Opt. did not work'
@@ -313,7 +313,4 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
         # Shared power
         shared_power[i] = value(shared_power[i])
 
-
-    return optimisation_status, \
-        np.asarray(shared_power), np.asarray(grid_feed), np.asarray(grid_purchase), \
-        np.asarray(battery_charge), np.asarray(battery_discharge), np.asarray(battery_energy)
+    return optimisation_status,  np.asarray(shared_power), np.asarray(grid_feed), np.asarray(grid_purchase), np.asarray(battery_charge), np.asarray(battery_discharge), np.asarray(battery_energy)

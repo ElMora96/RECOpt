@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import csv
 # from pulp import *
+import sys 
+sys.path.append("D:/Users/F.Moraglio/Documents/CER/RECOpt")
+
 from scipy.interpolate import interp1d
 from tabulate import tabulate
 from pathlib import Path
@@ -76,6 +79,7 @@ en_class = params['en_class']
 
 # Contractual power for each household (kW)
 power_max = params['power_max']
+
 
 # Time-step used to aggregated the results (min): 1 | 5 | 10 | 15 | 10 | 30 | 45 | 60
 dt_aggr = params['dt_aggr']
