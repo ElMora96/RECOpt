@@ -7,8 +7,9 @@ Created on Fri Feb 05 10:24:12 2021
 import numpy as np
 import csv
 from pathlib import Path
-
-import datareader
+# from pulp import *
+import sys 
+sys.path.append("D:/Users/F.Moraglio/Documents/CER/RECOpt")
 
 ##############################################################################
 

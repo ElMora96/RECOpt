@@ -61,7 +61,7 @@ basepath = Path(__file__).parent
 ##Household simulation Parameters - placeholders
 
 # Contractual power (MAX) (kW)
-power_max = 35
+power_max = 120
 
 # Time-step used to aggregated the results (min): 1 | 5 | 10 | 15 | 10 | 30 | 45 | 60 
 # FIXED PARAM : 60 minutes
@@ -95,6 +95,7 @@ print(message)
 print(tabulate(tab, headers=['Parameter', 'Value']))
 
 # Simulation setup (battery)
+
 tab = []
 for param in battery_setup:
     row = [param, battery_setup[param]]
@@ -231,6 +232,8 @@ technologies_dict = {
 # containing the time vector on the first columns and the unit production during each hour in each
 # month in the other columns
 
+#Little ugly
+import pvgis_to_csv #runs PVGIS Data transformation
 data_pv = datareader.read_general('pv_production_unit.csv', ';', 'Input')
 
 time_pv = data_pv[:, 0]
