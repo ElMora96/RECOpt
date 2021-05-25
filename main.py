@@ -59,30 +59,14 @@ basepath = Path(__file__).parent
 
 
 ##Household simulation Parameters - placeholders
-#params = inp.parameters_input()
-dirname = 'Parameters'
-try: Path.mkdir(basepath / dirname)
-except Exception: pass 
-params = datareader.read_param('parameters', ';', dirname)
-# The values of the parameters that are needed here are taken from params
-
-# Number of households c<<<<<<<<<<onsidered (-)
-n_hh = params['n_hh'] 
-
-# Geographical location: 'north' | 'centre' | 'south'
-location = params['location']
-
-# Energetic class of the appiances: 'A+++' | 'A++' | 'A+' | 'A' | 'B' | 'C' | 'D'
-en_class = params['en_class']
 
 # Contractual power (MAX) (kW)
-#power_max = params['power_max']
-power_max = 15
+power_max = 35
 
 # Time-step used to aggregated the results (min): 1 | 5 | 10 | 15 | 10 | 30 | 45 | 60 
 # FIXED PARAM : 60 minutes
-dt_aggr = 60 #params['dt_aggr']
-#%%
+dt_aggr = 60 
+
 
 ## Type of simulation
 # The type of simulation is chosen (fixed size or paramtric analysis) both for the pv
@@ -96,20 +80,9 @@ pv_setup, pv_size_range = inp.simulation_setup('PV')
 battery_setup, battery_size_range = inp.simulation_setup('battery')
 
 
-## Showing the user all the updated parameters
-   
-message = '\nThe parameters for the simulation and the simulation setup are now set as follows'
-print(message)
-
-# Simulation parameters
-tab = []
-for param in params:
-    row = [param, params[param]]
-    tab.append(row)
-
-message = '\nSimulation parameters'
+message = '\nNo consumption simulation is performed. Data are provided by User.'
 print(message) 
-print(tabulate(tab, headers=['Parameter', 'Value']))
+
 
 # Simulation setup (PV)
 tab = []
@@ -270,12 +243,12 @@ if (time_pv[-1] - time_pv[0])/(np.size(time_pv) - 1) != dt:
     pv_production_unit = f_pv(time_sim)
 
 
-## Consumption from the aggregate of households 
+## Consumption from the aggregate of PODs
 
 # Checking if there is already a file where the load profiles for this configuration have been stored
-dirname = 'Output'
+dirname = 'Input'
 subdirname = 'Files'
-subsubdirname = '{}_{}_{}'.format(location, en_class, n_hh)
+subsubdirname = 'Profiles'
 
 # If the files exist, program reads it
 try:
@@ -287,7 +260,7 @@ try:
 except:
     raise RuntimeError("Must provide load profiles in proper format.") # load_profiler_flag = 1
 
-### Energy shared from the aggregate of household during one year, for all possible configurations
+### Energy shared from the aggregate of PODs during one year, for all possible configurations
 
 # Total number of configurations to be analysed
 n_pv_sizes = len(pv_size_range)
@@ -321,7 +294,7 @@ perc_configurations = 25
 count_configurations = 0
 
 # The user is informed that the evaluation of the shared energy is starting
-message = '\nEvaluation of the energy shared by the aggregate of households for {:d} configuration(s).'.format(n_configurations)
+message = '\nEvaluation of the energy shared by the aggregate of PODs for {:d} configuration(s).'.format(n_configurations)
 print(message)
 
 # Creating the input power dictionary to be passed to the method  that evaluates the shared energy
@@ -559,18 +532,12 @@ subdirname = 'Files'
 try: Path.mkdir(basepath / dirname / subdirname)
 except Exception: pass 
 
-# Creating a subfolder, if not already existing
-subsubdirname = '{}_{}_{}'.format(location, en_class, n_hh)
+subsubdirname = 'simulation_results'
 
-try: Path.mkdir(basepath / dirname / subdirname / subsubdirname)
+try: Path.mkdir(basepath / dirname / subdirname / subsubdirname )
 except Exception: pass
 
-subsubsubdirname = 'simulation_results'
-
-try: Path.mkdir(basepath / dirname / subdirname / subsubdirname / subsubsubdirname)
-except Exception: pass
-
-fpath = basepath / dirname / subdirname / subsubdirname / subsubsubdirname
+fpath = basepath / dirname / subdirname / subsubdirname 
 
 # Saving the tabulate in a .csv file
 
@@ -600,11 +567,6 @@ subdirname = 'Figures'
 try: Path.mkdir(basepath / dirname / subdirname)
 except Exception: pass
 
-# Creating a subfolder, if not already existing
-subsubdirname = '{}_{}_{}'.format(location, en_class, n_hh)
-
-try: Path.mkdir(basepath / dirname / subdirname / subsubdirname)
-except Exception: pass
 
 # Different figures are created in case of fixed analysis for both the pv and the battery
 # or in case of at least one parametric analysis
@@ -613,12 +575,12 @@ except Exception: pass
 # depending on the sizes are created
 if fixed_analysis_flag != 1:
 
-    subsubsubdirname = 'shared_energy_results_pv_{}_{}_battery_{}_{}'.format(pv_size_range[0], pv_size_range[-1], battery_size_range[0], battery_size_range[-1])
+    subsubdirname = 'shared_energy_results_pv_{}_{}_battery_{}_{}'.format(pv_size_range[0], pv_size_range[-1], battery_size_range[0], battery_size_range[-1])
 
-    try: Path.mkdir(basepath / dirname / subdirname / subsubdirname / subsubsubdirname)
+    try: Path.mkdir(basepath / dirname / subdirname / subsubdirname )
     except Exception: pass
 
-    fpath = basepath / dirname / subdirname / subsubdirname / subsubsubdirname
+    fpath = basepath / dirname / subdirname / subsubdirname 
 
     # The method parametric_analysis from plot_generator.py takes a main_size and a lead_size. A number of subplots will be
     # created depending on the sizes present in the lead_size_range, while the sizes in the main_size_range will be used as x axis
@@ -716,12 +678,12 @@ if fixed_analysis_flag != 1:
 # are showed in the figures
 else:
 
-    subsubsubdirname = 'shared_energy_results_pv_{}_battery{}'.format(pv_size, battery_size)
+    subsubdirname = 'shared_energy_results_pv_{}_battery{}'.format(pv_size, battery_size)
 
-    try: Path.mkdir(basepath / dirname / subdirname / subsubdirname / subsubsubdirname)
+    try: Path.mkdir(basepath / dirname / subdirname / subsubdirname )
     except Exception: pass
 
-    fpath = basepath / dirname / subdirname / subsubdirname / subsubsubdirname
+    fpath = basepath / dirname / subdirname / subsubdirname 
 
     pv_production_month_day = results['pv_production_month_day']
     consumption_month_day = results['consumption_month_day']
@@ -746,9 +708,7 @@ else:
     }
 
     fig_specs = {
-        'suptitle': '\n'.join(('\nPower fluxes during two typical days', \
-                    'for {} households with {} energetic class in the {} of Italy'\
-                    .format(n_hh, en_class, location.capitalize()))),
+        'suptitle': '\nCER - Power Fluxes',
         'xaxis_label': 'Time (h)',
         'yaxis_left_label': 'Power (kW)',
         'yaxis_right_label': 'SOC (%)',
@@ -773,7 +733,7 @@ else:
                         battery_energy_month_day[:, mm, :]/batt_size*100),
                         axis = 0)
 
-        fig = plot.daily_profiles(time_sim, powers, plot_specs, fig_specs, **params)
+        fig = plot.daily_profiles(time_sim, powers, plot_specs, fig_specs)
 
         filename = 'power_fluxes_{}_{}.png'.format(mm, month)
         fig.savefig(fpath / filename)

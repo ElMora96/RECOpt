@@ -31,26 +31,6 @@ dirname = 'Parameters'
 try: Path.mkdir(basepath / dirname)
 except Exception: pass 
 
-
-## Parameters
-
-# Simulation parameters that can be changed
-# n_hh              #number of households (-)
-# n_people_avg      #average number of members for each household (-)
-# ftg_avg           #average footage of each household (m2)
-# location          #geographical location: 'north' | 'centre' | 'south'
-# power_max         #maximum power available from the grid (contractual power) (W)
-# en_class          #energetic class of the appiances: 'A+++' | 'A++' | 'A+' | 'A' | 'B' | 'C' | 'D'
-# toll              #tolerance on the displacement of the appliance's daily time-on, i.e. duration (%)
-# devsta            #standard deviation of the appliance's daily time-on, i.e. duration (min)
-# dt_aggr           #aggregated data timestep (min) 15 | 30 | 60
-# q_max             #quantile for the maximum instantaneous load profile (%)
-# q_med             #quantile for the medium instantaneous load profile (%)
-# q_min             #quantile for the minimum instantaneous load profile (%)
-# time_scale        #time-scale for plotting: 'min' | 'h'
-# power_scale       #power-scale for plotting: 'W' | 'kW' | 'MW'
-# energy_scale      #energy-scale for plotting: 'kWh' | 'MWh'
-
 ## Simulation setup
 
 # Parameters for the simulation setup that can be changed (both for PV and battery)
@@ -58,8 +38,6 @@ except Exception: pass
 # size              #fixed size of the system (active if sim_type == 'fixed') (kW)
 # size_min          #minimum size of the system (active if sim_type == 'parametric') (kW)
 # size_max          #maximum size of the system (active if sim_type == 'parametric') (kW)
-
-
 
 ################################################################################################################################################################################
 
