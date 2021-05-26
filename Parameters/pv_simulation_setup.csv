@@ -1,0 +1,5 @@
+'Name';'Value'
+'sim_type';'parametric'
+'size_min';45.0
+'size_max';65.0
+'n_sizes';5

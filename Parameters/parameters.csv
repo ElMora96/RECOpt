@@ -1,0 +1,7 @@
+'Name';'Value';'Unit of measure'
+'n_hh';5;'(units)'
+'location';'north';'(/)'
+'power_max';15.0;'(kW)'
+'en_class';'A+';'(/)'
+'ftg_avg';100.0;'(m2)'
+'dt_aggr';60;'(min)'
