@@ -1,0 +1,15 @@
+Month;Week-day;Weekend-day;SSI  (%);SCI  (%);Shared energy  (kWh);PV production  (kWh);Consumption  (kWh);Grid feed  (kWh);Grid purchase  (kWh);Battery charge  (kWh);Battery discharge  (kWh)
+January;Optimal;Optimal;32.76;87.11;2802.6;3217.1;8556.0;386.8;5753.4;337.5;309.7
+February;Optimal;Optimal;23.64;99.98;3385.5;3386.0;14323.4;0.0;10937.9;0.5;0.0
+March;Optimal;Optimal;33.58;99.77;5055.1;5066.8;15055.1;4.9;10000.0;78.5;71.7
+April;Optimal;Optimal;35.81;99.95;5134.9;5137.3;14338.9;0.0;9204.0;24.1;21.6
+May;Optimal;Optimal;39.06;99.81;5692.0;5703.0;14573.1;4.3;8881.1;76.7;70.0
+June;Optimal;Optimal;41.63;98.14;5577.1;5682.9;13395.8;95.3;7818.6;124.4;114.0
+July;Optimal;Optimal;42.48;92.76;5829.8;6284.8;13723.1;430.5;7893.3;297.3;272.9
+August;Optimal;Optimal;41.40;97.56;5837.7;5984.0;14102.3;127.0;8264.6;233.5;214.2
+September;Optimal;Optimal;37.94;97.45;4932.4;5061.3;13001.7;114.2;8069.3;177.0;162.3
+October;Optimal;Optimal;27.89;99.62;3830.0;3844.5;13730.1;10.4;9900.1;45.6;41.5
+November;Optimal;Optimal;19.93;99.98;2912.6;2913.2;14616.9;0.0;11704.2;0.6;0.0
+December;Optimal;Optimal;19.41;99.98;3143.8;3144.4;16193.0;0.0;13049.2;0.6;0.0
+
+Year;/;/;32.69;97.67;54133.5;55425.3;165609.3;1173.4;111475.8;1396.2;1277.8

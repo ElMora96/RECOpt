@@ -1,0 +1,4 @@
+PV size  (kW);Battery size  (kWh);Opt. did not work in *values fixed;Opt. infeasible in *minor issue;SSI  (%);SCI  (%);Shared energy  (kWh/year);PV production  (kWh/year);Consumption  (kWh/year);Grid feed  (kWh);Grid purchase  (kWh);Battery charge  (kWh);Battery discharge  (kWh)
+55.0;10.0;;;40.15;87.26;66497.3;76209.8;165609.3;9469.0;99112.1;2944.2;2700.7
+55.0;15.0;;;40.73;88.51;67453.2;76209.8;165609.3;8403.7;98156.2;4262.6;3909.7
+55.0;20.0;;;41.25;89.63;68310.0;76209.8;165609.3;7452.8;97299.3;5389.0;4942.0

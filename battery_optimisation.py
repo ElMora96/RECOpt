@@ -1,6 +1,6 @@
 import numpy as np
 from pulp import *
-
+from pathlib import Path, PureWindowsPath
 
 ###############################################################################
 
@@ -92,29 +92,6 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
     # pv_available = pv_production - consumption
     # pv_available[pv_available < 0] = 0
 
-
-    # ## Easy solution
-    #
-    # # If the available power from the PV is zero at all timesteps, no optimisation is needed, since
-    # # all the consumption is satisfied purchasing energy from the grid. In such cases, the optimisation 
-    # # can just be skipped.
-    #
-    # # Defining a tolerance on the available power to be considered zero (since it is given in kW,
-    # # a tolerance of 1e-4 is a tenth of a W)
-    # tol = 1e-4
-    # if np.all(power_available < 0 + tol):
-    #     # print('Optimisation is avoided since there is no excess power from the PV')
-    #     problem_status = 'Opt. unnecessary'
-    #     grid_feed = np.zeros((time_length,))
-    #     grid_purchase = net_load
-    #     battery_charge = np.zeros((time_length,))
-    #     battery_discharge = np.zeros((time_length,))
-    #     battery_energy = battery_energy_min*np.ones((time_length,))
-
-    #     return problem_status, grid_feed, grid_purchase, battery_charge, battery_discharge, battery_energy
-
-
-
     ### Optimisation procedure
     # In case there is excess power from the PV, the optimisation procedure is followed
     # Please select the objective to pursue, between:
@@ -157,7 +134,7 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
 
     # M is a big-parameter that is used in the linearization of the function min(x1, x2)
     # In this case, x1 and x2 are, respectively, the hourly sum between the pv production and the battery discharge,
-    # and the hourly sum between the consumption and the battery charge. M is a big number that must be larger than both x1 and x2
+    # and the hourly sum between the consumption and the battery charge. M is a _powerig number that must be larger than both x1 and x2
     # The battery_charge/discharge are not known in advance but their maximum value is, therefore M is evaluated as follows
     # M = 100*max(np.max(pv_production) + battery_discharge_pmax, \
     #             np.max(consumption) + battery_charge_pmax)
@@ -271,8 +248,12 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
     # In order to avoid stopping the procedure due to such errors, a try-except is used
     # If the xception raises, nans are returned
 
+    '''
     try:
-        opt_problem.solve(GLPK_CMD(msg = 0)) #PULP_CBC_CMD(msg=True)
+        solver_path = r'D:\\Users\\F.Moraglio\\Downloads\\Cbc-master-win64-msvc16-mt\\bin\\cbc.exe'
+        solver = PULP_CBC_CMD(path = solver_path, msg=1)
+        #solver = GLPK_CMD(msg = 0) #this works
+        opt_problem.solve(solver) #PULP_CBC_CMD(msg=True)
         
     except:
         optimisation_status = 'Opt. did not work'
@@ -283,7 +264,15 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
         battery_energy = np.zeros((time_length,)); battery_energy[:] = np.nan
 
         return optimisation_status, grid_feed, grid_purchase, battery_charge, battery_discharge, battery_energy      
-
+    '''
+    ## Use Custom SOLVER to speed up computations
+    #the basepath of the file is stored in a variable 
+    basepath = Path(__file__).parent
+    solver_path = basepath / "Input" / "Files" / "Solvers" / "cbc.exe"  #Path to CBC solver   
+    solver_path = solver_path.as_posix() #Windows path requires being casted to posix
+    solver = COIN_CMD(path = solver_path, msg=1)
+    #solver = GLPK_CMD(msg = 0) #this works
+    opt_problem.solve(solver) #PULP_CBC_CMD(msg=True)   
     # If instead everything goes smooth, the optimisation status is printed and the optimised values are returned
 
     # Optimisation status

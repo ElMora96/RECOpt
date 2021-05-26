@@ -10,15 +10,18 @@ from tabulate import tabulate
 from pathlib import Path
 
 import parameters_input as inp
+
 import plot_generator as plot
 import datareader
 from tictoc import tic, toc
 from shared_energy_evaluator import shared_energy_evaluator
 
 
+
 # Palette of colors to be used for plotting the results
 colors = [(230, 25, 75),
         (60, 180, 75),
+		
         (255, 225, 25),
         (0, 130, 200),
         (245, 130, 48),
@@ -716,6 +719,7 @@ else:
         'yaxis_left_label': 'Power (kW)',
         'yaxis_right_label': 'SOC (%)',
     }
+	
 
     for month in months:
 
@@ -737,6 +741,7 @@ else:
                         axis = 0)
 
         fig = plot.daily_profiles(time_sim, powers, plot_specs, fig_specs)
+
 
         filename = 'power_fluxes_{}_{}.png'.format(mm, month)
         fig.savefig(fpath / filename)
