@@ -1,13 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
-# from pulp import *
+from pathlib import Path
 import sys 
-sys.path.append("D:/Users/F.Moraglio/Documents/CER/RECOpt")
+# The basepath of the file is stored in a variable 
+basepath = Path(__file__).parent
+sys.path.append(basepath.as_posix())
 
 from scipy.interpolate import interp1d
 from tabulate import tabulate
-from pathlib import Path
+
 
 import parameters_input as inp
 
@@ -52,11 +54,6 @@ for color in colors:
 
 
 ###############################################################################
-
-# The basepath of the file is stored in a variable 
-basepath = Path(__file__).parent
-
-
 
 ### Parameters and simulation setup
 

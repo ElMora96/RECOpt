@@ -4,10 +4,6 @@ Created on Wed Jan 27 08:51:11 2020
 
 @author: giamm
 """
-
-
-
-
 import numpy as np
 from tabulate import tabulate
 from battery_optimisation import battery_optimisation
@@ -89,7 +85,7 @@ def shared_energy_evaluator(time_dict, input_powers_dict, technologies_dict, aux
     # Monthly values for the energy are stored 
 
     # Energy production from the PV (kWh/month)
-    pv_production_energy = np.zeros((n_months))
+    pv_production_energy = np.zeros((n_months)) #numpy.zeros
 
     # Energy consumption from the aggregate of households (kWh/month)
     consumption_energy = np.zeros((n_months))
@@ -132,12 +128,8 @@ def shared_energy_evaluator(time_dict, input_powers_dict, technologies_dict, aux
 
     ## Performing the calculation for each month, for each day-type (i.e. for n_months*n_days = 24 typical days)
 
-    # Since the keys in days (dict) are strings, this for loop is used to store their names (they are needed in the following)
-    for day in days:
-        iday = days[day][0]
-        if iday == 0: weekday = day
-        elif iday == 1: weekend = day
-
+    # Since the keys in days (dict) are strings, vastore their names (they are needed in the following)
+    weekday, weekend = list(days)    
     # Running through the months
     for month in months:
 
@@ -194,11 +186,8 @@ def shared_energy_evaluator(time_dict, input_powers_dict, technologies_dict, aux
             # Using the method battery_optimisation from the module battery_optimisation.py to run the MILP
             # optimisation in order to determine the battery usage strategy in the typical day. Powers and 
             # energy stored in the battery at each time-step are returned.
-            try:
-                optimisation_status[month][day], shared_power, grid_feed, grid_purchase, battery_charge, battery_discharge, battery_energy = \
-                battery_optimisation(pv_production, consumption, time_dict, technologies_dict)
-            except:
-                raise RuntimeError("Hey motherfucker! Optimisation failed")
+            optimisation_status[month][day], shared_power, grid_feed, grid_purchase, battery_charge, battery_discharge, battery_energy = \
+            battery_optimisation(pv_production, consumption, time_dict, technologies_dict)
 
             # # Uncomment to check that the constraints and equations defined in the problem are actually respected
             # tol = 1e-4
@@ -208,7 +197,7 @@ def shared_energy_evaluator(time_dict, input_powers_dict, technologies_dict, aux
             # if (np.any(battery_charge > pv_available + tol)): print('ops, battery_charge'); print(battery_charge - pv_available)
         
             # Evaluating the instanteneous shared energy, according to the definition in the Decree Law 162/2019
-            # shared_power = np.minimum((pv_production + battery_discharge), (consumption + battery_charge))
+            #shared_power = np.minimum((pv_production + battery_discharge), (consumption + battery_charge))
 
             # Storing the energies for this typical day in the monthly energies, this is done by summing the power during each time-step
             # (and multipling by the time-step in order to get the energy) and multiplying by the total number of days of this type

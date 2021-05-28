@@ -46,21 +46,21 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
     # time_sim = time_dict['time_sim']
 
     # Number of elements of the vector of time
-    time_length = time_dict['time_length']
+    time_length = time_dict['time_length'] #N_int = 24
 
 
     ## Sizes and battery specficiations of the various technologies
 
     # PV size (kW)
-    pv_size = technologies_dict['pv_size']
+    pv_size = technologies_dict['pv_size'] 
 
     # Grid maximum power (kW)
-    grid_feed_max = technologies_dict['pv_size']
-    grid_purchase_max = technologies_dict['grid_power_max']
+    grid_feed_max = technologies_dict['pv_size'] #P_s,max  
+    grid_purchase_max = technologies_dict['grid_power_max'] #P_p,max
 
     # Battery size/capacity (kWh)
-    battery_size = technologies_dict['battery_size']
-    battery_capacity = battery_size
+    battery_size = technologies_dict['battery_size'] 
+    battery_capacity = battery_size #CAP_nom
 
     # Battery specifications 
     battery_specs = technologies_dict['battery_specs']
@@ -73,20 +73,20 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
     SOCmin = battery_specs['SOC_min']
 
     # Minimum time of charge/discharge (on which the maximum discharge power depends) (h)
-    t_cd_min = battery_specs['t_cd_min']
+    t_cd_min = battery_specs['t_cd_min'] #Dt_c,min = Dt_d,min
 
     # Charge, discharge and self-discharge efficiencies (-)
-    eta_charge = battery_specs['eta_charge']
-    eta_discharge = battery_specs['eta_discharge']
-    eta_self_discharge = battery_specs['eta_self_discharge']
+    eta_charge = battery_specs['eta_charge'] #n_bc
+    eta_discharge = battery_specs['eta_discharge'] #n_bd
+    eta_self_discharge = battery_specs['eta_self_discharge'] #n_sd
 
     # Maximum and minimum energy in the battery (kWh)
-    battery_energy_max = SOCmax*battery_capacity 
+    battery_energy_max = SOCmax*battery_capacity #CAP_ut
     battery_energy_min = SOCmin*battery_capacity 
 
     # Maximum power of discharge and charge (kW)
-    battery_discharge_max = battery_capacity*(SOCmax-SOCmin)/t_cd_min 
-    battery_charge_max = battery_discharge_max
+    battery_discharge_max = battery_capacity*(SOCmax-SOCmin)/t_cd_min  #P_bd,max
+    battery_charge_max = battery_discharge_max #P_bc,max
 
     # # Evaluating the excess energy, if the production tries to fulfill the whole demand (needed to bound the grid_feed power)
     # pv_available = pv_production - consumption
@@ -100,7 +100,7 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
     #           and all energy taken from the grid, consumption + battery)
     opt_objectives = ['MAXSHE', 'MINGRI']
 
-    opt_objective_num = 1 #porcata
+    opt_objective_num = 1 #porcata default:1
     opt_objective = opt_objectives[opt_objective_num]
 
 
@@ -114,10 +114,10 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
     
 
     ## Definition of the variables
-
+    #_state variables denote boolean indicators
     # Initalizing the variables
     grid_feed = time_length * [0]  
-    grid_feed_state = time_length * [0]   
+    grid_feed_state = time_length * [0] 
     grid_purchase = time_length * [0]  
     grid_purchase_state = time_length * [0]  
     battery_charge = time_length * [0]  
@@ -132,14 +132,13 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
     # y is used to assess whether x1 is larger than x2 or the other way around
     y = time_length * [0]
 
-    # M is a big-parameter that is used in the linearization of the function min(x1, x2)
+    # M is a big-parameter that is used in the linearization of the function min(x1, x2) (shared power computation)
     # In this case, x1 and x2 are, respectively, the hourly sum between the pv production and the battery discharge,
     # and the hourly sum between the consumption and the battery charge. M is a _powerig number that must be larger than both x1 and x2
     # The battery_charge/discharge are not known in advance but their maximum value is, therefore M is evaluated as follows
     # M = 100*max(np.max(pv_production) + battery_discharge_pmax, \
     #             np.max(consumption) + battery_charge_pmax)
-    M = 100*max(pv_size + battery_discharge_max, \
-                grid_purchase_max)
+    M = 100*max(pv_size + battery_discharge_max, grid_purchase_max)
 
     # Assigning the variables 
     for i in range(time_length):
@@ -168,11 +167,11 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
  
     for i in range(time_length):  
 
-        # Equilibrium at the electric node (in-coming power = exiting power)
+        # Equilibrium at the electric node (in-coming power = exiting power) - (4.10)
         opt_problem += (consumption[i] + grid_feed[i] + battery_charge[i] \
                          - pv_production[i] - grid_purchase[i] - battery_discharge[i])*dt == 0  #- power_available[i]
         
-        # Energy conservation for the battery (and initial SOC = final SOC)
+        # Energy conservation for the battery (and initial SOC = final SOC)  - (4.12) + (4.13)
         if (i < time_length - 1):
             opt_problem += (- battery_energy[i + 1] + eta_self_discharge*battery_energy[i]
                             + (battery_charge[i]*eta_charge \
@@ -183,37 +182,37 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
                             - battery_discharge[i]*(1/ eta_discharge))*dt) == 0
 
         # Constraint on maximum grid power (both for feed and purchase)
-        opt_problem += (grid_feed[i] <= grid_feed_state[i] * grid_feed_max) 
-        opt_problem += (grid_purchase[i] <= grid_purchase_state[i] * grid_purchase_max)
+        opt_problem += (grid_feed[i] <= grid_feed_state[i] * grid_feed_max) # (4.20 a)
+        opt_problem += (grid_purchase[i] <= grid_purchase_state[i] * grid_purchase_max) # (4.20 b)
 
         # Constraint on feeding/purchasing: they cannot be both active at the same time
-        opt_problem += (grid_feed_state[i] + grid_purchase_state[i] >= 0)
-        opt_problem += (grid_feed_state[i] + grid_purchase_state[i] <= 1)
+        opt_problem += (grid_feed_state[i] + grid_purchase_state[i] >= 0) #(4.20 c)
+        opt_problem += (grid_feed_state[i] + grid_purchase_state[i] <= 1) #(4.20 d)
 
         # Constraint on maximum charge and discharge power
-        opt_problem += (battery_charge[i] <= battery_charge_state[i] * battery_charge_max)
-        opt_problem += (battery_discharge[i] <= battery_discharge_state[i] * battery_discharge_max)
+        opt_problem += (battery_charge[i] <= battery_charge_state[i] * battery_charge_max)  #(4.18 a)
+        opt_problem += (battery_discharge[i] <= battery_discharge_state[i] * battery_discharge_max) #(4.18 b)
 
         # Constraint on charging/discharging: they cannot be both active at the same time
-        opt_problem += (battery_charge_state[i] + battery_discharge_state[i] >= 0)
-        opt_problem += (battery_charge_state[i] + battery_discharge_state[i] <= 1)
+        opt_problem += (battery_charge_state[i] + battery_discharge_state[i] >= 0) #(4.18 c)
+        opt_problem += (battery_charge_state[i] + battery_discharge_state[i] <= 1) #(4.18 d)
 
-        # Constraint on maximum and minimum SOC
-        opt_problem += (battery_energy[i] <= battery_energy_max)
+        # Constraint on maximum and minimum SOC -- (4.11)
+        opt_problem += (battery_energy[i] <= battery_energy_max) 
         opt_problem += (battery_energy[i] >= battery_energy_min)
 
-        # Constraint on grid feed: the battery cannot be discharged to sell to the grid
+        # Constraint on grid feed: the battery cannot be discharged to sell to the grid -- (4.16) -- Wrong
         opt_problem += (grid_feed[i] <= pv_production[i]) 
 
-        # Constraint on grid purchase: the battery cannot be charged from the grid
+        # Constraint on grid purchase: the battery cannot be charged from the grid -- (4.17) -- Wrong
         opt_problem += (battery_charge[i] <= pv_production[i]) 
 
         # Linearization of shared_power[i] = min(pv_production[i] + battery_discharge[i] - battery_charge[i], consumption[i])
 
         # Constraint on the shared energy, that must be smaller than both pv_production + battery_discharge - battery_charge
         # and consumption (1/2)
-        opt_problem += (shared_power[i] <= (pv_production[i] + battery_discharge[i] - battery_charge[i]))
-        opt_problem += (shared_power[i] <= (consumption[i]))
+        opt_problem += (shared_power[i] <= (pv_production[i] + battery_discharge[i] - battery_charge[i])) #strange
+        opt_problem += (shared_power[i] <= (consumption[i])) #strange
 
         # Definition of y that is 1 when pv_production + battery_discharge <= consumption[i] + battery_charge[i], 0 otherwise
         # The definition of y is introduced as a constraint
@@ -231,7 +230,7 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
 
     # Objective of minimizing the interactions with the grid
     if opt_objective == 'MINGRI': opt_problem += lpSum([grid_feed[i] + grid_purchase[i]   for i in range(time_length)])
-
+	#if opt_objective == 'MINGRI': opt_problem += lpSum([grid_feed[i] for i in range(time_length)]) # (4.14)
     # Objective of maximizing the shared energy
     elif opt_objective == 'MAXSHE': opt_problem += lpSum([shared_power[i] for i in range(time_length)])
     
@@ -248,31 +247,29 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
     # In order to avoid stopping the procedure due to such errors, a try-except is used
     # If the xception raises, nans are returned
 
-    '''
     try:
-        solver_path = r'D:\\Users\\F.Moraglio\\Downloads\\Cbc-master-win64-msvc16-mt\\bin\\cbc.exe'
-        solver = PULP_CBC_CMD(path = solver_path, msg=1)
+        #solver = GLPK_CMD(msg = 0) #default - this works
+        ## Use Custom SOLVER to speed up computations
+        #the basepath of the file is stored in a variable 
+        basepath = Path(__file__).parent
+        solver_path = basepath / "Input" / "Files" / "Solvers" / "cbc.exe"  #Path to CBC solver   
+        solver_path = solver_path.as_posix() #Windows path requires being casted to posix
+        solver = COIN_CMD(path = solver_path, msg=1)
         #solver = GLPK_CMD(msg = 0) #this works
-        opt_problem.solve(solver) #PULP_CBC_CMD(msg=True)
+        opt_problem.solve(solver) #PULP_CBC_CMD(msg=True)   
         
     except:
+
         optimisation_status = 'Opt. did not work'
         grid_feed = np.zeros((time_length,)); grid_feed[:] = np.nan
         grid_purchase = np.zeros((time_length,)); grid_purchase[:] = np.nan
         battery_charge = np.zeros((time_length,)); battery_charge[:] = np.nan
         battery_discharge = np.zeros((time_length,)); battery_discharge[:] = np.nan
         battery_energy = np.zeros((time_length,)); battery_energy[:] = np.nan
+        shared_power = np.zeros((time_length,))
+        return optimisation_status, shared_power, grid_feed, grid_purchase, battery_charge, battery_discharge, battery_energy      
 
-        return optimisation_status, grid_feed, grid_purchase, battery_charge, battery_discharge, battery_energy      
-    '''
-    ## Use Custom SOLVER to speed up computations
-    #the basepath of the file is stored in a variable 
-    basepath = Path(__file__).parent
-    solver_path = basepath / "Input" / "Files" / "Solvers" / "cbc.exe"  #Path to CBC solver   
-    solver_path = solver_path.as_posix() #Windows path requires being casted to posix
-    solver = COIN_CMD(path = solver_path, msg=1)
-    #solver = GLPK_CMD(msg = 0) #this works
-    opt_problem.solve(solver) #PULP_CBC_CMD(msg=True)   
+
     # If instead everything goes smooth, the optimisation status is printed and the optimised values are returned
 
     # Optimisation status
