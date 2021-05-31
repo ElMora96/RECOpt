@@ -6,7 +6,7 @@ import sys
 # The basepath of the file is stored in a variable 
 basepath = Path(__file__).parent
 sys.path.append(basepath.as_posix())
-
+import pandas as pd
 from scipy.interpolate import interp1d
 from tabulate import tabulate
 
@@ -23,8 +23,8 @@ from shared_energy_evaluator import shared_energy_evaluator
 # Palette of colors to be used for plotting the results
 colors = [(230, 25, 75),
         (60, 180, 75),
-		
         (255, 225, 25),
+		
         (0, 130, 200),
         (245, 130, 48),
         (145, 30, 180),
@@ -61,7 +61,7 @@ for color in colors:
 ##Household simulation Parameters - placeholders
 
 # Contractual power (MAX) (kW)
-power_max = 120
+power_max = 105.5#105.5 - 140.5
 
 # Time-step used to aggregated the results (min): 1 | 5 | 10 | 15 | 10 | 30 | 45 | 60 
 # FIXED PARAM : 60 minutes
@@ -249,14 +249,21 @@ if (time_pv[-1] - time_pv[0])/(np.size(time_pv) - 1) != dt:
 ## Consumption from the aggregate of PODs
 
 # Checking if there is already a file where the load profiles for this configuration have been stored
-dirname = 'Input'
-subdirname = 'Files'
-subsubdirname = 'Profiles'
+dirname = Path('Input')
+subdirname = Path('Files')
+subsubdirname = Path('Profiles')
 
 # If the files exist, program reads it
 try:
-    data_wd = datareader.read_general('consumption_profiles_month_wd.csv', ';', '/'.join((dirname, subdirname, subsubdirname)))
-    data_we = datareader.read_general('consumption_profiles_month_we.csv', ';', '/'.join((dirname, subdirname, subsubdirname)))
+    #data_wd = datareader.read_general('consumption_profiles_month_wd.csv', ';', '/'.join((dirname, subdirname, subsubdirname)))
+    data_wd = pd.read_csv(basepath / dirname / subdirname / subsubdirname / 'consumption_profiles_month_wd.csv',
+						  sep = ";",
+						  decimal = ".",
+						  ).dropna().values
+    data_we = pd.read_csv(basepath / dirname / subdirname / subsubdirname / 'consumption_profiles_month_we.csv',
+						  sep = ";",
+						  decimal = ".",
+						  ).dropna().values
     consumption_month_wd = data_wd[:, 1:]
     consumption_month_we = data_we[:, 1:]
     consumption_month_day = np.stack((consumption_month_wd, consumption_month_we), axis = 2)

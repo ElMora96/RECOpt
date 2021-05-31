@@ -88,9 +88,6 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
     battery_discharge_max = battery_capacity*(SOCmax-SOCmin)/t_cd_min  #P_bd,max
     battery_charge_max = battery_discharge_max #P_bc,max
 
-    # # Evaluating the excess energy, if the production tries to fulfill the whole demand (needed to bound the grid_feed power)
-    # pv_available = pv_production - consumption
-    # pv_available[pv_available < 0] = 0
 
     ### Optimisation procedure
     # In case there is excess power from the PV, the optimisation procedure is followed
@@ -127,6 +124,10 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
     battery_energy = time_length * [0]
     shared_power = time_length * [0] 
     
+    #Add available power constraints:
+    available_power = time_length * [0]
+    z = time_length * [0]
+
     # y is a binary variable that is used to linearize the definition of the shared power
     # The function min(x1, x2) is indeed not linear therefore a proper implementation is needed
     # y is used to assess whether x1 is larger than x2 or the other way around
@@ -162,6 +163,9 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
         shared_power[i] = LpVariable("shared_power " + str(i), lowBound = 0)
         y[i] = LpVariable("auxiliary " + str(i), cat = LpBinary)
 
+        # Available power and linearization variable z (1|0)
+        available_power[i] = LpVariable("available_power " + str(i), lowBound = 0)
+        z[i] = LpVariable("aux_bis " + str(i), cat = LpBinary)
 
     ## Constraints (to be set for each time-step)
  
@@ -172,6 +176,7 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
                          - pv_production[i] - grid_purchase[i] - battery_discharge[i])*dt == 0  #- power_available[i]
         
         # Energy conservation for the battery (and initial SOC = final SOC)  - (4.12) + (4.13)
+        #Add (1/battery_size)
         if (i < time_length - 1):
             opt_problem += (- battery_energy[i + 1] + eta_self_discharge*battery_energy[i]
                             + (battery_charge[i]*eta_charge \
@@ -201,19 +206,44 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
         opt_problem += (battery_energy[i] <= battery_energy_max) 
         opt_problem += (battery_energy[i] >= battery_energy_min)
 
+        # Linearization of available_power[i] = max(pv_production[i] - consumption[i], 0) (4.16) + (4.17) -- Correct
+        x1 = pv_production[i] - consumption[i]
+        x2 = 0
+        opt_problem += (x1 - x2 - M*z[i] <= 0)
+        opt_problem += (x2 - x1 - M*(1 - z[i]) <= 0)
+        opt_problem += (available_power[i] >= x1)
+        opt_problem += (available_power[i] >= x2)
+        opt_problem += (available_power[i] <= x1 + M*(1 - z[i]))
+        opt_problem += (available_power[i] <= x2 + M*z[i])
+
+        # Constraint (4.16)
+        opt_problem += (battery_charge[i] <= available_power[i]) 
+
+        # Constraint (4.17)
+        opt_problem += (grid_feed[i] <= available_power[i])
+
+        '''
         # Constraint on grid feed: the battery cannot be discharged to sell to the grid -- (4.16) -- Wrong
         opt_problem += (grid_feed[i] <= pv_production[i]) 
 
         # Constraint on grid purchase: the battery cannot be charged from the grid -- (4.17) -- Wrong
         opt_problem += (battery_charge[i] <= pv_production[i]) 
+		'''
 
         # Linearization of shared_power[i] = min(pv_production[i] + battery_discharge[i] - battery_charge[i], consumption[i])
+        # IN MY HUMBLE OPINION, IT SHOULD BE shared_power[i] = min(pv_production[i] + battery_discharge[i],  battery_charge[i] + consumption[i])
+        """
+        x1 = pv_production[i] + battery_discharge[i]
+        x2 = consumption[i] + battery_charge[i]
+        #This wai constraints become:
+        opt_problem += (x2 - x1 <= M*y[i])
+        opt_problem += (x1 - x2) <= M*(1 - y[i])
+		"""
 
         # Constraint on the shared energy, that must be smaller than both pv_production + battery_discharge - battery_charge
         # and consumption (1/2)
         opt_problem += (shared_power[i] <= (pv_production[i] + battery_discharge[i] - battery_charge[i])) #strange
         opt_problem += (shared_power[i] <= (consumption[i])) #strange
-
         # Definition of y that is 1 when pv_production + battery_discharge <= consumption[i] + battery_charge[i], 0 otherwise
         # The definition of y is introduced as a constraint
         opt_problem += ((consumption[i]) - (pv_production[i] + battery_discharge[i] - battery_charge[i]) <= M*y[i])
@@ -255,7 +285,6 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
         solver_path = basepath / "Input" / "Files" / "Solvers" / "cbc.exe"  #Path to CBC solver   
         solver_path = solver_path.as_posix() #Windows path requires being casted to posix
         solver = COIN_CMD(path = solver_path, msg=1)
-        #solver = GLPK_CMD(msg = 0) #this works
         opt_problem.solve(solver) #PULP_CBC_CMD(msg=True)   
         
     except:
@@ -267,6 +296,7 @@ def battery_optimisation(pv_production, consumption, time_dict, technologies_dic
         battery_discharge = np.zeros((time_length,)); battery_discharge[:] = np.nan
         battery_energy = np.zeros((time_length,)); battery_energy[:] = np.nan
         shared_power = np.zeros((time_length,))
+        #shared_power = np.minimum((pv_production + battery_discharge), (consumption + battery_charge)) 
         return optimisation_status, shared_power, grid_feed, grid_purchase, battery_charge, battery_discharge, battery_energy      
 
 
