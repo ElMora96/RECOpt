@@ -199,11 +199,10 @@ def shared_energy_evaluator(time_dict, input_powers_dict, technologies_dict, aux
             # Evaluating the instanteneous shared energy, according to the definition in the Decree Law 162/2019
             #shared_power = np.minimum((pv_production + battery_discharge), (consumption + battery_charge)) #WRONG
             
-
+            
             #Fix shared power in case optimization did not work
             #print(optimisation_status[month][day])
             if optimisation_status[month][day] == 'Infeasible':
-                print("FIXING SHARED POWER") ###Debug
                 shared_power = np.minimum(pv_production + battery_discharge - battery_charge, \
                                           consumption)  
             

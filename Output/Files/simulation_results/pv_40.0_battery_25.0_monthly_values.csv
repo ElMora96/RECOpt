@@ -1,0 +1,15 @@
+Month;Week-day;Weekend-day;SSI  (%);SCI  (%);Shared energy  (kWh);PV production  (kWh);Consumption  (kWh);Grid feed  (kWh);Grid purchase  (kWh);Battery charge  (kWh);Battery discharge  (kWh)
+January;Infeasible;Infeasible;34.37;99.96;3215.7;3217.1;9355.0;0.0;6139.3;1.4;0.0
+February;Optimal;Infeasible;42.17;99.69;3375.5;3386.0;8004.7;0.0;4629.2;116.4;105.9
+March;Optimal;Optimal;49.46;86.96;4406.3;5066.8;8909.0;616.5;4502.7;520.2;476.3
+April;Optimal;Optimal;48.78;80.12;4116.1;5137.3;8437.8;977.4;4321.7;516.2;472.4
+May;Optimal;Optimal;54.22;77.02;4392.4;5703.0;8101.1;1256.5;3708.7;639.6;585.5
+June;Optimal;Optimal;48.58;65.82;3740.6;5682.9;7700.4;1891.0;3959.7;605.8;554.5
+July;Optimal;Optimal;50.56;61.47;3863.0;6284.8;7640.1;2368.8;3777.1;624.9;571.9
+August;Optimal;Optimal;56.16;67.91;4063.9;5984.0;7236.7;1865.7;3172.8;645.4;591.0
+September;Optimal;Optimal;58.43;95.52;4834.5;5061.3;8274.1;174.1;3439.6;633.5;580.9
+October;Optimal;Optimal;42.80;99.86;3839.0;3844.5;8969.9;0.0;5130.9;52.7;47.2
+November;Infeasible;Infeasible;30.71;99.95;2911.8;2913.2;9480.0;0.0;6568.3;1.4;0.0
+December;Optimal;Infeasible;31.53;99.95;3142.7;3144.4;9968.0;0.0;6825.3;4.8;3.1
+
+Year;/;/;44.97;82.82;45901.7;55425.3;102076.8;9149.9;56175.1;4362.3;3988.7
