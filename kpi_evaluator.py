@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def cash_flows(y_returns, pv_size, maintenance, beta = 1):
+def cash_flows(y_returns, pv_size, maintenance = 12.5 , beta = 1):
 	"""Compute CF - Cash Flow given iterable of returns
 	Parameters:
 	y_returns: Iterable with yearly returns
@@ -20,7 +20,7 @@ def cash_flows(y_returns, pv_size, maintenance, beta = 1):
 	for amount in y_returns:
 			cashflow = amount*beta - maintenance*pv_size
 			CF.append(cashflow)
-	if len(cashflow) == 1:
+	if len(CF) == 1:
 		return CF[0]
 	else:
 		return np.array(CF)
@@ -28,7 +28,7 @@ def cash_flows(y_returns, pv_size, maintenance, beta = 1):
 def yearly_returns(pv_production, zonal_prices, shared_energy, TP = 110, CU_af = 8.5):
 	"""Compute (Approximate) yearly returns given yearly series.
 	Parameters:
-	pv_production: array_like -- yearly series photovoltaic production
+	pv_production: array_like -- yearly series photovo8888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888ltaic production
 	zonal_prices: array_like -- yearly series zonal electric prices 
 	shared_energy: pd.Series with datetime index -- yearly series shared energy in REC
 	TP: float -- Tariff Premium in REC
@@ -75,7 +75,7 @@ def IRR(cflow, investment):
 	result = irr(cflow)
 	return result
 
-def build_pv_profile(timerange, profile_pv):
+def build_pv_profile(timerange, profile_pv, power_max = 45):
 	"""Construct hourly PV production profile given average power profiles
 	timerange: pd.date_range -- build profile over this range
 	profile_pv: array_like of shape (24,12). -- Average PV profiles.
@@ -83,8 +83,8 @@ def build_pv_profile(timerange, profile_pv):
 	vals = []
 	for tx in timerange:
 		hh = tx.hour 	
-		mm = tx.month
-		val = profile_pv[hh, mm]
+		mm = tx.month - 1
+		val = profile_pv[hh, mm]  * power_max * (1/1000)
 		vals.append(val)
 	result = pd.Series(vals, index = timerange)
 	return result
@@ -108,20 +108,44 @@ def build_shared_energy_profile(timerange, profile_wd, profile_we):
 		mm = tx.month - 1 #consider months in [0, ..., 11]
 		daytype = 0 if dd < 5 else 1 #weekday or weekend
 		prof = profiles[daytype] #correct profile
-		print(daytype)
-		val = prof[hh, mm] #Since power is hourly, no transformation is needes
+		val = prof[hh, mm]*(1/1000)#Since power is hourly, no transformation is needes
 		vals.append(val)
 	result = pd.Series(vals, index = timerange)
 	return result
 
+#%%
 #UNIT TEST#
 
 if __name__ == '__main__':
-	test1 = pd.date_range("2020-01-01", "2020-03-01", freq = "H")
-	profile_wd = pd.read_csv("D:/Users/F.Moraglio/Documents/CER/RECOpt/Output/Files/Shared_Power/shared_power_pv_40.0_battery_25.0/wd.csv",
+	profile_wd = pd.read_csv("D:/Users/F.Moraglio/Documents/CER/RECOpt/Output/Files/Shared_Power/shared_power_pv_45.0_battery_10.0/wd.csv",
 							 sep = ";", decimal = ",").values
-	profile_we = pd.read_csv("D:/Users/F.Moraglio/Documents/CER/RECOpt/Output/Files/Shared_Power/shared_power_pv_40.0_battery_25.0/we.csv",
+	profile_we = pd.read_csv("D:/Users/F.Moraglio/Documents/CER/RECOpt/Output/Files/Shared_Power/shared_power_pv_45.0_battery_10.0/we.csv",
 							 sep = ";", decimal = ",").values	
-	series = build_shared_energy_profile(test1, profile_wd, profile_we)
-	series.plot()
+	prices = pd.read_excel("D:/Users/F.Moraglio/Documents/CER/RECOpt/Input/Files/Prices/2019.xlsx",
+						engine='openpyxl',
+						sheet_name = 0,
+						index_col = 0).values.ravel()
+	
+	pv = pd.read_csv("D:/Users/F.Moraglio/Documents/CER/RECOpt/Input/pv_production_unit.csv",
+					sep = ";",
+					decimal = ".")
+	pv = pv.values[:,1:]
+	time = pd.date_range(start = "2019-01-01",
+					     end ="2019-12-31 23:00",
+						 freq = "H",
+						 closed = None
+						 )
+	
+	shared_energy_sample = build_shared_energy_profile(time, profile_wd, profile_we)
+	pv_sample = build_pv_profile(time, pv, 45)
+	shared_energy_sample.plot()
 	plt.show()
+	#Compute sample quantities
+	y_returns_sample = yearly_returns(pv_sample, prices, shared_energy_sample )
+	y_returns_sample = cash_flows(y_returns_sample, 45, beta = 0.5)
+	#Cash flows ab minchia
+	cf =  [y_returns_sample] * 20
+	irr = IRR(cf, 500*10 + 45*810)
+	
+	
+	

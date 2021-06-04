@@ -17,7 +17,7 @@ import plot_generator as plot
 import datareader
 from tictoc import tic, toc
 from shared_energy_evaluator import shared_energy_evaluator
-
+from kpi_rev import *
 
 
 # Palette of colors to be used for plotting the results
@@ -763,6 +763,7 @@ plt.show()
 ## Creating and storing shared power tables - only for fixed analysis
 if fixed_analysis_flag == 1:
 	#Create folder if it doesn not already exists
+	'''
 	dirname = 'Output'
 	subdirname = 'Files'
 	subsubdirname = 'Shared_Power'
@@ -786,7 +787,26 @@ if fixed_analysis_flag == 1:
 	sp_weekend.to_csv(outpath / 'we.csv',
 				      sep = ";",
 					  decimal = ",",
-					  index = False)	
+					  index = False)
+	'''
+	dirname = 'Output'
+	subdirname = 'Files'
+	subsubdirname = 'KPI'
+	try: Path.mkdir(basepath / dirname / subdirname / subsubdirname)
+	except Exception: pass
+
+	#Compute KPI
+	I0 = initial_investment(pv_size, battery_size) #initial investment
+	cflows, energy_sales, contrib, contrib_prod = cash_flows(grid_feed_year/1000,
+														     shared_energy_year/1000,
+															    pv_size, 
+																beta = 0.75,
+																n_years=20,
+																inf_rate= 0.01)
+	#Compute NPV and IRR
+	cer_npv = NPV(cflows, 0.02, I0)
+	cer_irr = IRR(cflows, I0)
+
 
 
 
