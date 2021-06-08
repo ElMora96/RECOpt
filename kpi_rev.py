@@ -8,7 +8,7 @@ def NPV(cflow, discount, investment):
 	Parameters:
 	cflow: array_like -- Contains yearly cash flows, excluding initial investment
 	investment: (positive) float -- Initial investment
-	discount: float in [0,1] -- Investment Discount Rate
+	discount: float in [0,1] -- Investment Discount Rate - Tasso inflazione
 	Returns float NPV.
 	"""
 	cflow = list(cflow) #cast as list
@@ -51,8 +51,32 @@ def cash_flows(fed_energy, shared_energy, pv_size, beta, PR3 = 42,  CUAF = 8.56 
 
 	return cflows, energy_sales, contributions, contrib_prod   
 
+def PCR(yearly_expense, contrib_prod, energy_sales, initial_investment, pv_size, OM = 12.5, n_years = 20):
+	"""Percentage cost reduction"""
+	#Average yearly returns
+	community_returns =(contrib_prod.sum() + energy_sales.sum())/n_years
+	yearly_amortations = initial_investment/n_years
+	yearly_om = OM*pv_size
+	pcr = 100*(community_returns - yearly_amortations - yearly_om)/yearly_expense
+	return pcr
 
+def PCR_community(yearly_expense, contrib_community, n_years = 20):
+	"""Compute PCR for community"""
+	pcr = contrib_community.sum()/n_years
+	return pcr/yearly_expense*100
+
+def PBT(initial_investment, cflow):
+	"""Compute Payback Time for given cash flows and initial investment"""
+	year = 0 
+	amount = 0 #Total money
+	while amount < initial_investment:
+		amount += cflow[year]
+		year += 1
+		if year == len(cflow):
+			return 'Infeasible' 
+	return year
 #%%
+
 #UNIT TEST#
 if __name__ == '__main__':
 	pass

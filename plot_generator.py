@@ -555,17 +555,15 @@ def parametric_analysis(main_size_range, lead_size_range, data, plot_specs, fig_
         fig - figure handle
 
     '''
-    
-
     ## Parameters
 
     # Default parameters
     def_params = {
     'figsize': (297/25.4 , 420/25.4),
     'orientation': 'horizontal',
-    'font_small': 14,
-    'font_medium': 16,
-    'font_large': 18,
+    'font_small': 16,
+    'font_medium': 18,
+    'font_large': 20,
     }
     
     ##
@@ -673,7 +671,7 @@ def parametric_analysis(main_size_range, lead_size_range, data, plot_specs, fig_
         
     
         ax[i_row, i_col].tick_params(axis ='both', labelsize = fontsize_ticks)
-        # ax[i_row, i_col].grid(axis = 'y')
+        #ax[i_row, i_col].grid(axis = 'y')
 
         ax[i_row, i_col].legend(loc = 'upper left', fontsize = fontsize_legend)
 

@@ -18,7 +18,13 @@ import datareader
 from tictoc import tic, toc
 from shared_energy_evaluator import shared_energy_evaluator
 from kpi_rev import *
-
+import seaborn as sns
+sns.set_theme() #use to reset955
+sns.set_style("whitegrid")
+sns.set_context("notebook", font_scale= 2.5)
+plt.rc('figure',figsize=(16,12))
+plt.rc('font', size=20)
+plt.rc('lines', markersize = 10) #18 for cv plots
 
 # Palette of colors to be used for plotting the results
 colors = [(230, 25, 75),
@@ -55,13 +61,10 @@ for color in colors:
 
 ###############################################################################
 
-### Parameters and simulation setup
-
-
-##Household simulation Parameters - placeholders
+### Parameters setup
 
 # Contractual power (MAX) (kW)
-power_max = 105.5#105.5 - 140.5
+power_max = 140.5#105.5 - 140.5
 
 # Time-step used to aggregated the results (min): 1 | 5 | 10 | 15 | 10 | 30 | 45 | 60 
 # FIXED PARAM : 60 minutes
@@ -163,10 +166,6 @@ n_months = len(months)
 n_seasons = len(seasons)
 n_days = len(days)
 
-# Creating two lists to properly slice the consumption data when interpolating from seasonal to monthly values
-months_slice = np.arange(0, n_months)
-seasons_slice = np.arange(0, n_months, int(n_months/n_seasons))
-
 # Storing all these dictionaries in a new dict that is passed to the various methods
 auxiliary_dict = {
 	'seasons': seasons,
@@ -258,11 +257,11 @@ try:
 	#data_wd = datareader.read_general('consumption_profiles_month_wd.csv', ';', '/'.join((dirname, subdirname, subsubdirname)))
 	data_wd = pd.read_csv(basepath / dirname / subdirname / subsubdirname / 'consumption_profiles_month_wd.csv',
 						  sep = ";",
-						  decimal = ".",
+						  decimal = ",",
 						  ).dropna().values
 	data_we = pd.read_csv(basepath / dirname / subdirname / subsubdirname / 'consumption_profiles_month_we.csv',
 						  sep = ";",
-						  decimal = ".",
+						  decimal = ",",
 						  ).dropna().values
 	consumption_month_wd = data_wd[:, 1:]
 	consumption_month_we = data_we[:, 1:]
@@ -577,6 +576,9 @@ subdirname = 'Figures'
 try: Path.mkdir(basepath / dirname / subdirname)
 except Exception: pass
 
+##################################
+########   PLOTS  ################
+##################################
 
 # Different figures are created in case of fixed analysis for both the pv and the battery
 # or in case of at least one parametric analysis
@@ -603,7 +605,7 @@ if fixed_analysis_flag != 1:
 		}
 
 	fig_specs = {
-		'suptitle': 'Parametric analysis on the PV and/or battery size',
+		'suptitle': None,
 		'xaxis_label': 'PV size (kW)',
 		'yaxis_right_label': 'Performance index (%)',
 		'yaxis_left_label': 'Energy (kWh/year)',

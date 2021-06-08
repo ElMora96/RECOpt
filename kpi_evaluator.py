@@ -28,7 +28,7 @@ def cash_flows(y_returns, pv_size, maintenance = 12.5 , beta = 1):
 def yearly_returns(pv_production, zonal_prices, shared_energy, TP = 110, CU_af = 8.5):
 	"""Compute (Approximate) yearly returns given yearly series.
 	Parameters:
-	pv_production: array_like -- yearly series photovo8888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888ltaic production
+	pv_production: array_like -- yearly series photovoltaic production
 	zonal_prices: array_like -- yearly series zonal electric prices 
 	shared_energy: pd.Series with datetime index -- yearly series shared energy in REC
 	TP: float -- Tariff Premium in REC
