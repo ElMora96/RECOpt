@@ -67,7 +67,11 @@ power_max = 105.5 if scenario == 1 else 140.5
 # Power yearly expense
 yearly_expense = 19356
 #Producer (investor) benefit share
-beta_prod = 1 if scenario == 1 else 0.75
+beta_prod = 1 if scenario == 1 else 1
+#Beta range for parametric analysis
+betarange = np.linspace(0.5, 1.0, 6)
+betadf = [] #empty list to store betadf rows
+#betadf = pd.DataFrame(columns = ['PV Size (kW)', 'Battery Size (kW)', 'IRR (%)', 'Beta'])
 # Photovoltaic (PV)
 pv_setup, pv_size_range = inp.simulation_setup('PV')
 # Battery 
@@ -321,9 +325,26 @@ for pv_size in pv_size_range:
 
 		# Self-consumption index in a year (%)
 		self_cons_ind_year = shared_energy_year/(pv_production_year)*100
-
+		
+		#initial investment
+		I0 = initial_investment(pv_size, battery_size) 
+		ix = 0
+		#Compute IRR wrt varying beta
+		for betaval in betarange:
+			cflows, energy_sales, contrib, contrib_prod = cash_flows(grid_feed_year/1000,
+															     	shared_energy_year/1000,
+																    pv_size, 
+																	beta = betaval,
+																	n_years = 20,
+																	inf_rate= 0.01
+																	)			
+			irrval = IRR(cflows, I0)*100
+			pcrval = PCR(yearly_expense, contrib_prod, energy_sales, I0, pv_size)
+			riga = [pv_size, battery_size, irrval, pcrval, betaval]
+			betadf.append(riga)
+		
 		#Compute KPI
-		I0 = initial_investment(pv_size, battery_size) #initial investment
+		
 		cflows, energy_sales, contrib, contrib_prod = cash_flows(grid_feed_year/1000,
 														     	shared_energy_year/1000,
 															    pv_size, 
@@ -336,8 +357,15 @@ for pv_size in pv_size_range:
 		cer_irr = IRR(cflows, I0)
 
 		#Compute PCR
-		cer_pcr = PCR(yearly_expense, contrib_prod, energy_sales, I0, power_max)
-
+		"""
+		print("yearly exp ", yearly_expense)
+		print("contib prod", contrib_prod)
+		print("Energy sales ", energy_sales)
+		print("Initial inv", I0)
+		print("power max", power_max)
+		"""
+		cer_pcr = PCR(yearly_expense, contrib_prod, energy_sales, I0, pv_size)
+		
 		#Payback time
 		cer_pbt = PBT(I0, cflows)
 
@@ -612,7 +640,7 @@ if fixed_analysis_flag != 1:
 					legend = 'auto'
 					)
 	plt.title("KPI - Optimal Design")	
-
+	plt.show()
 
 # If the analysis is fixed-size on both the PV and the battery, detailed results (power fluxes)
 # are showed in the figures
@@ -680,6 +708,30 @@ else:
 		filename = 'power_fluxes_{}_{}.png'.format(mm, month)
 		fig.savefig(fpath / filename)
 		# plt.close(fig)
+		plt.show()
+
+#Beta Parametric Analysis
+betadf = pd.DataFrame(betadf, columns = ['PV Size (kW)', 'Battery Size (kW)', 'IRR (%)', 'PCR (%)', 'Beta'])
+
+plt.rc('lines', linewidth=3)
+sns.set_style('darkgrid')
+sns.lineplot(data = betadf,
+				x = 'Beta',
+				y = 'IRR (%)',
+				hue = 'Battery Size (kW)',
+				style = 'PV Size (kW)',
+				palette = 'deep')
+plt.title("Benefit Share Parametric Analysis - IRR")
+plt.show()
+
+sns.lineplot(data = betadf,
+				x = 'Beta',
+				y = 'PCR (%)',
+				hue = 'Battery Size (kW)',
+				style = 'PV Size (kW)',
+				palette = 'crest')
+plt.title("Benefit Share Parametric Analysis - PCR")
+
 
 
 message = '\nThe detailed figures about shared energy have been saved in {}.'.format(fpath)
@@ -687,3 +739,24 @@ print(message)
 
 print('\nEnd. Total time: {0:.2f} s.'.format(toc()))
 plt.show()
+
+
+#IRR vs SSI
+if fixed_analysis_flag != 1:
+	plt.rc('lines', markersize = 21)
+	sns.scatterplot(data = output,
+					x = "SSI  (%)",
+					y = 'IRR (%)',
+					hue = 'Battery size  (kWh)',
+					style = "PV size  (kW)")
+	#plt.title("IRR vs SSI - Caso Studio 1 (No RSA)") 
+	plt.show()
+	
+	#PCR vs SCI
+	plt.rc('lines', markersize = 21)
+	sns.scatterplot(data = output,
+					x = 'SCI  (%)',
+					y = 'PCR Yearly (%)',
+					hue = 'Battery size  (kWh)',
+					style = "PV size  (kW)")
+	#plt.title("PCR vs SCI - Caso Studio 1 (No RSA)") 

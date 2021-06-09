@@ -1,3 +1,5 @@
 'Name';'Value'
-'sim_type';'fixed'
-'size';50.0
+'sim_type';'parametric'
+'size_min';40.0
+'size_max';55.0
+'n_sizes';4

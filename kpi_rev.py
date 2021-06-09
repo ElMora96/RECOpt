@@ -32,7 +32,7 @@ def initial_investment(pv_size, battery_size, n_batteries = 1, capex_pv = 810, c
 	"""Compute initial investment"""
 	return pv_size*capex_pv + battery_size*capex_batt*n_batteries
 
-def cash_flows(fed_energy, shared_energy, pv_size, beta, PR3 = 42,  CUAF = 8.56 , TP = 110, inf_rate = 0.02, OM = 12.5, n_years = 20):
+def cash_flows(fed_energy, shared_energy, pv_size, beta, PR3 = 42,  CUAF = 8.56 , TP = 110, inf_rate = 0.02, OM = 30, n_years = 20):
 	"""Compute cash flows over 20 years"""
 	prezzi_ritiro = [PR3]*n_years
 	for i in range(1, n_years):
@@ -51,7 +51,7 @@ def cash_flows(fed_energy, shared_energy, pv_size, beta, PR3 = 42,  CUAF = 8.56 
 
 	return cflows, energy_sales, contributions, contrib_prod   
 
-def PCR(yearly_expense, contrib_prod, energy_sales, initial_investment, pv_size, OM = 12.5, n_years = 20):
+def PCR(yearly_expense, contrib_prod, energy_sales, initial_investment, pv_size, OM = 30, n_years = 20):
 	"""Percentage cost reduction"""
 	#Average yearly returns
 	community_returns =(contrib_prod.sum() + energy_sales.sum())/n_years
