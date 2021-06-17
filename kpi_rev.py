@@ -28,7 +28,7 @@ def IRR(cflow, investment):
 	result = irr(cflow)
 	return result
 
-def initial_investment(pv_size, battery_size, n_batteries = 1, capex_pv = 810, capex_batt = 509):
+def initial_investment(pv_size, battery_size, n_batteries = 1, capex_pv = 900, capex_batt = 509):
 	"""Compute initial investment"""
 	return pv_size*capex_pv + battery_size*capex_batt*n_batteries
 
