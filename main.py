@@ -43,6 +43,7 @@ colors = [(230, 25, 75),
 		(128, 0, 0),
 		(170, 255, 195),
 		(128, 128, 0),
+		
 		(255, 215, 180),
 		(0, 0, 128),
 		(128, 128, 128)]
@@ -61,7 +62,7 @@ for color in colors:
 ### Parameters setup
 
 # Contractual power (MAX) (kW)
-power_max = 140.5#105.5 - 140.5
+power_max = 20#105.5 - 140.5 20 solo palestra
 
 # Time-step used to aggregated the results (min): 1 | 5 | 10 | 15 | 10 | 30 | 45 | 60 
 # FIXED PARAM : 60 minutes
